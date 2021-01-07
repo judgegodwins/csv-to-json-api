@@ -31,53 +31,63 @@ function checkValidity(data) {
 }
 
 app.post('/to_json', (req, res) => {
-  const payload = req.body;
 
-  //query csv link
-  axios.get(payload.csv.url)
-    .then(function(response) {
+  try {
 
-      // check if csv is valid
-      if (!checkValidity(response.data)) 
-        return res.json({ error: 'invalid csv!' });
+    const payload = req.body;
 
-      csvtojson() // use csv to json to transform csv to json
-        .fromString(response.data)
-        .then(jsonObj => {
-          const successResponse = () => res.json({
-            conversion_key: uuidv4(), // universally unique identifier
-            json: jsonObj
-          })
+    //query csv link
+    axios.get(payload.csv.url)
+      .then(function(response) {
 
-          const { select_fields } = payload.csv
+        // check if csv is valid
+        if (!checkValidity(response.data)) 
+          return res.json({ error: 'invalid csv!' });
 
-          if(!select_fields) return successResponse(); // if no fields are selected, return all
-
-          jsonObj.forEach((obj, index) => { // iterate through each record
-            const keys = Object.keys(obj); // record keys
-
-            keys.forEach(key => { 
-              if (!select_fields.includes(key)) { 
-                // if key is not in select_fields, delete.
-                delete obj[key];
-              }
+        csvtojson() // use csv to json to transform csv to json
+          .fromString(response.data)
+          .then(jsonObj => {
+            const successResponse = () => res.json({
+              conversion_key: uuidv4(), // universally unique identifier
+              json: jsonObj
             })
+
+            const { select_fields } = payload.csv
+
+            if(!select_fields) return successResponse(); // if no fields are selected, return all
+
+            jsonObj.forEach((obj, index) => { // iterate through each record
+              const keys = Object.keys(obj); // record keys
+
+              keys.forEach(key => { 
+                if (!select_fields.includes(key)) { 
+                  // if key is not in select_fields, delete.
+                  delete obj[key];
+                }
+              })
+            })
+
+            successResponse();
+          })
+          .catch(error => {
+            res.json({error: error})
           })
 
-          successResponse();
-        })
-        .catch(error => {
-          res.json({error: error})
-        })
-
-    })
-    .catch((error) => {
-      res.json({
-        message: 'Something went wrong. Could not make request',
-        suggestion: 'Check if link is valid'
       })
+      .catch((error) => {
+        res.json({
+          message: 'Something went wrong. Could not make request',
+          suggestion: 'Check if link is valid'
+        })
+      })
+
+  } catch(error) {
+    res.json({
+      error: true,
+      message: "something went wrong"
     })
+  }
 
 })
 
-app.listen(PORT, (port, hostname) => console.log('listening on port ', PORT))
+app.listen(PORT, () => console.log('listening on port ', PORT))
