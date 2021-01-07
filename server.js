@@ -30,7 +30,7 @@ function checkValidity(data) {
   return lengthArray.every(value => value === lengthArray[0])
 }
 
-app.post('/to_json', (req, res) => {
+app.post('/', (req, res) => {
 
   try {
 
