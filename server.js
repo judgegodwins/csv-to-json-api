@@ -11,42 +11,36 @@ const PORT = 8080
 
 app.use(bodyParser.json())
 
-
 // algorithm for csv validation
 function checkValidity(data) {
 
   const rows = data.split('\n')
   if(rows[rows.length-1] === "") rows.splice(rows.length-1);
+
+  const lengthArray = []
   
-
-  const firstRowLength = rows[0].split(',').length
-  console.log(firstRowLength)
-  let lengthArray = []
-
   rows.forEach((row, index) => {
+    const regex = /"[\p{L}\p{N}\p{P}\p{S}\s]*["]/gui // regex for getting quoted values
 
-    if(index == 0) return // exclude the headers
-
-    const firstValueInRow = row.split(',')[0]
-    const hasQuote = firstValueInRow[0] == '"' && firstValueInRow[firstValueInRow.length-1] == '"'
-    console.log(row, ' ', hasQuote)
-
-    if(hasQuote) {
-      console.log(row.split('",'))
-      lengthArray.push(row.split('",').length) // push number of values to lengthArray 
-    } else {
-      console.log(row.split(','))
-      lengthArray.push(row.split(',').length)
+    let lengthInMatch = 0
+    if(row.match(regex)) {
+      console.log(row.match(regex))
+      lengthInMatch = row.match(regex)[0].split('",').length - 1
+      row = row.replace(regex, '')
     }
+    row = row.trim().replace(/[^,]/gi, '')
+
+    // console.log('row: ', row)
+    
+    lengthInMatch += row.length;
+    lengthArray.push(lengthInMatch)
   })
 
-  console.log('length: ', lengthArray)
-  // return true if number of values for each row are the same. (same number of commas)
-  // number of values for each row are stored in lengthArray
-  return lengthArray.every(value => value == firstRowLength)
+  console.log(lengthArray)
+  return lengthArray.every(value => value == lengthArray[0])
 }
 
-
+// console.log(checkValidity(array))
 
 app.post('/', (req, res) => {
 
