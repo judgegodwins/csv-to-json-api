@@ -11,23 +11,37 @@ const PORT = 8080
 
 app.use(bodyParser.json())
 
+// algorithm for csv validation
 function checkValidity(data) {
 
   const rows = data.split('\n')
   if(rows[rows.length-1] === "") rows.splice(rows.length-1);
+  
 
+  const firstRowLength = rows[0].split(',').length
+  console.log(firstRowLength)
   let lengthArray = []
 
-  rows.forEach(row => {
-    // check for number of commas
-    const commas = row.replace(/[^,]/g, "")
+  rows.forEach((row, index) => {
 
-    // push number to array for checking
-    lengthArray.push(commas.length)
+    if(index == 0) return // exclude the headers
+
+    const hasQuote = /"\w+"/.test(row.split(',')[0])
+    console.log(row, ' ', hasQuote)
+
+    if(hasQuote) {
+      console.log(row.split('",'))
+      lengthArray.push(row.split('",').length) // push number of values to lengthArray 
+    } else {
+      console.log(row.split(','))
+      lengthArray.push(row.split(',').length)
+    }
   })
 
-  // return true if all values for each row are the same. (same number of commas)
-  return lengthArray.every(value => value === lengthArray[0])
+  console.log('length: ', lengthArray)
+  // return true if number of values for each row are the same. (same number of commas)
+  // number of values for each row are stored in lengthArray
+  return lengthArray.every(value => value == firstRowLength)
 }
 
 app.post('/', (req, res) => {
@@ -75,6 +89,7 @@ app.post('/', (req, res) => {
 
       })
       .catch((error) => {
+        console.log(error)
         res.json({
           message: 'Something went wrong. Could not make request',
           suggestion: 'Check if link is valid'
