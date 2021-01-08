@@ -11,11 +11,21 @@ const PORT = 8080
 
 app.use(bodyParser.json())
 
+var array =  [
+  'First Name,Last Name,Country,age',
+  'Bob,"Sm,ith","United,States",24',
+  'Alice,"Will,iams","Cana,da",23',
+  'Malcolm,Jone,"Eng,land",22',
+  '"Felix","Brown","USA",23',
+  '"Alex","Cooper","Poland",23',
+  '"Tod","Campbell","United States",22',
+  '"Derek","Ward","Switzerland",25',
+  '']
 
 // algorithm for csv validation
 function checkValidity(data) {
 
-  const rows = data.split('\n')
+  const rows = data
   if(rows[rows.length-1] === "") rows.splice(rows.length-1);
   
 
@@ -27,26 +37,65 @@ function checkValidity(data) {
 
     if(index == 0) return // exclude the headers
 
-    const firstValueInRow = row.split(',')[0]
+    const rowItems = row.split(',')
+    console.log('rowItems ', rowItems)
+    const firstValueInRow = rowItems[0];
     const hasQuote = firstValueInRow[0] == '"' && firstValueInRow[firstValueInRow.length-1] == '"'
-    console.log(row, ' ', hasQuote)
+    // console.log(firstValueInRow[firstValueInRow.length-1], ' ', hasQuote)
 
     if(hasQuote) {
-      console.log(row.split('",'))
-      lengthArray.push(row.split('",').length) // push number of values to lengthArray 
+      // console.log(row.split('",'))
+      let splitWithQuote = row.split('",')
+      // console.log('splitwithquote', splitWithQuote)
+      splitWithQuote.forEach((item, index) => {
+        console.log('item: ', item)
+        if (item.includes(',')) {
+          const splitItem = item.split(',')
+          
+          
+          if(splitItem.every(value => Number.isFinite(Number(value)))) {
+            console.log('splititem ', splitItem)
+            splitWithQuote.splice(index, 1)
+            splitWithQuote = [...splitWithQuote, ...splitItem]
+          }
+        }
+      })
+      lengthArray.push(splitWithQuote.length) // push number of values to lengthArray 
     } else {
-      console.log(row.split(','))
-      lengthArray.push(row.split(',').length)
+      console.log('no ""')
+      // console.log(row.split(','))
+      let splitWithoutQuote = row.split(',')
+      function recurse(i) {
+        // console.log(splitWithoutQuote[i][splitWithoutQuote[i].length-1])
+        if(i > splitWithoutQuote.length-1) return;
+        if(splitWithoutQuote[i][0] == '"' && splitWithoutQuote[i][splitWithoutQuote[i].length-1] != '"') {
+          splitWithoutQuote[i] += splitWithoutQuote[i+1]
+          
+          splitWithoutQuote.splice(i+1, 1)
+          console.log('none')
+          console.log(splitWithoutQuote[i])
+          console.log(splitWithoutQuote)
+          return recurse(i + 1)
+        } else {
+          recurse(i+1)
+        }
+      }
+
+      recurse(0)
+
+      lengthArray.push(splitWithoutQuote.length)
     }
   })
 
-  console.log('length: ', lengthArray)
+  // console.log('length: ', lengthArray)
   // return true if number of values for each row are the same. (same number of commas)
   // number of values for each row are stored in lengthArray
+  // console.log(firstRowLength, lengthArray)
+  console.log(lengthArray)
   return lengthArray.every(value => value == firstRowLength)
 }
 
-
+console.log(checkValidity(array))
 
 app.post('/', (req, res) => {
 
