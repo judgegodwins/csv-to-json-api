@@ -11,6 +11,7 @@ const PORT = 8080
 
 app.use(bodyParser.json())
 
+
 // algorithm for csv validation
 function checkValidity(data) {
 
@@ -26,7 +27,8 @@ function checkValidity(data) {
 
     if(index == 0) return // exclude the headers
 
-    const hasQuote = /"\w+"/.test(row.split(',')[0])
+    const firstValueInRow = row.split(',')[0]
+    const hasQuote = firstValueInRow[0] == '"' && firstValueInRow[firstValueInRow.length-1] == '"'
     console.log(row, ' ', hasQuote)
 
     if(hasQuote) {
@@ -43,6 +45,8 @@ function checkValidity(data) {
   // number of values for each row are stored in lengthArray
   return lengthArray.every(value => value == firstRowLength)
 }
+
+
 
 app.post('/', (req, res) => {
 
