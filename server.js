@@ -86,7 +86,7 @@ app.post('/', (req, res) => {
 
             if (objPropertyCount.every(value => value == 0) && select_fields)
               return res.json({
-                message: "selected fields are not present in csv.",
+                message: "The selected fields are not present in the csv.",
                 suggestion: "Try changing selected fields to values present in the csv file"
               });
             
