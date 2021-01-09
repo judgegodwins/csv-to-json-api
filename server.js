@@ -68,6 +68,8 @@ app.post('/', (req, res) => {
 
             if(!select_fields) return successResponse(); // if no fields are selected, return all
 
+            const objPropertyCount = []
+
             jsonObj.forEach((obj, index) => { // iterate through each record
               const keys = Object.keys(obj); // record keys
 
@@ -77,8 +79,17 @@ app.post('/', (req, res) => {
                   delete obj[key];
                 }
               })
+
+              objPropertyCount.push(Object.keys(obj).length)
+
             })
 
+            if (objPropertyCount.every(value => value == 0) && select_fields)
+              return res.json({
+                message: "selected fields are not present in csv.",
+                suggestion: "Try changing selected fields to values present in the csv file"
+              });
+            
             successResponse();
           })
           .catch(error => {
